@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishEye Scanner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>PhishEye 👁️</h1>
+            <p>AI-Powered Protection</p>
+        </header>
+
+        <div class="main-content">
+            <div class="url-display" id="urlDisplay">
+                <span class="url-text">No active tab detected</span>
+            </div>
+
+            <div id="resultSection" class="result-section hidden">
+                <div class="verdict-box" id="verdictBox">
+                    <h2 id="verdictText">SAFE</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="label">Risk Score</span>
+                        <div class="progress-bar">
+                            <div class="fill" id="riskBar" style="width: 0%"></div>
+                        </div>
+                        <span class="value" id="riskValue">0%</span>
+                    </div>
+
+                    <div class="stat-item">
+                        <span class="label">Confidence</span>
+                        <span class="value" id="confidenceValue">0%</span>
+                    </div>
+                </div>
+
+                <div id="cachedBadge" class="cached-badge hidden">
+                    ⚡ Cached Result
+                </div>
+            </div>
+
+            <div id="loadingSection" class="loading-section hidden">
+                <div class="spinner"></div>
+                <p>Analyzing URL...</p>
+            </div>
+
+            <div id="errorSection" class="error-section hidden">
+                <p id="errorText">Connection Failed</p>
+            </div>
+
+            <button id="scanBtn" class="primary-btn">Scan This Site</button>
+        </div>
+
+        <footer>
+            <p>Connected to Localhost:5000</p>
+        </footer>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

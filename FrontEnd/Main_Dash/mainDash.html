@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishEye Dashboard</title>
+  <link rel="stylesheet" href="mainDash.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="top-bar">
+      <div class="nav-left">
+        <!-- User Icon Trigger -->
+        <button id="userMenuBtn" class="user-menu-btn">
+          <div class="user-avatar">U</div>
+        </button>
+
+        <!-- Logo -->
+        <div class="logo-wrapper">
+          <div class="logo-icon">
+            <i data-lucide="eye"></i>
+          </div>
+          <span class="brand-name">PhishEye</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-badge">
+          <div class="pulse-dot"></div>
+          <span>Live</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Panel (Hidden by default) -->
+    <div id="navPanel" class="nav-panel hidden">
+      <div class="panel-header">
+        <div class="panel-user-info">
+          <div class="panel-user-avatar">
+            <i data-lucide="user"></i>
+          </div>
+          <div>
+            <span class="panel-user-name">User</span>
+            <span class="panel-user-email">user@example.com</span>
+          </div>
+        </div>
+      </div>
+      <nav class="panel-menu">
+        <button class="panel-item active" data-tab="dashboard">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="panel-item" data-tab="quickscan">
+          <i data-lucide="scan"></i>
+          <span>Quick Scan</span>
+        </button>
+        <button class="panel-item" data-tab="history">
+          <i data-lucide="clock"></i>
+          <span>History</span>
+        </button>
+        <button class="panel-item" data-tab="settings">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </button>
+        <div class="panel-divider"></div>
+        <button class="panel-item logout">
+          <i data-lucide="log-out"></i>
+          <span>Logout</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Dashboard Content -->
+      <div id="dashboard-view" class="view-content active">
+        <div class="view-header">
+          <h1>Dashboard</h1>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <!-- Total Scanned -->
+          <div class="stat-card">
+            <div class="stat-header">
+              <i data-lucide="shield" class="text-cyan"></i>
+              <span>Total Scanned</span>
+            </div>
+            <div class="stat-value" id="totalScans">0</div>
+            <div class="stat-subtitle">Total sites checked</div>
+          </div>
+
+          <!-- Safe Sites -->
+          <div class="stat-card">
+            <div class="stat-header">
+              <i data-lucide="shield" class="text-green"></i>
+              <span>Safe Sites</span>
+            </div>
+            <div class="stat-value" id="safeSites">0</div>
+            <div class="stat-subtitle">Status: Protected</div>
+          </div>
+
+          <!-- Suspicious -->
+          <div class="stat-card">
+            <div class="stat-header">
+              <i data-lucide="alert-triangle" class="text-yellow"></i>
+              <span>Suspicious</span>
+            </div>
+            <div class="stat-value" id="suspiciousSites">0</div>
+            <div class="stat-subtitle">Needs Review</div>
+          </div>
+
+          <!-- Malicious Blocked -->
+          <div class="stat-card">
+            <div class="stat-header">
+              <i data-lucide="bug" class="text-red"></i>
+              <span>Malicious Blocked</span>
+            </div>
+            <div class="stat-value" id="maliciousSites">0</div>
+            <div class="stat-subtitle">Threats neutralized</div>
+          </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+          <h2>Detection Analysis</h2>
+          <div class="chart-container">
+            <canvas id="securityChart"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item text-green">Safe</div>
+            <div class="legend-item text-yellow">Suspicious</div>
+            <div class="legend-item text-red">Malware</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placeholders for other views -->
+      <div id="history-view" class="view-content" style="display: none;">
+        <div class="view-header">
+          <h1>History</h1>
+        </div>
+        <p class="text-muted">History content goes here...</p>
+      </div>
+      <div id="settings-view" class="view-content" style="display: none;">
+        <div class="view-header">
+          <h1>Settings</h1>
+        </div>
+        <p class="text-muted">Settings content goes here...</p>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- API Service Layer -->
+  <script src="../js/config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="mainDash.js"></script>
+</body>
+
+</html>

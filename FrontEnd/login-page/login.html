@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishEye | Secure Login</title>
+  <link rel="stylesheet" href="login.css" />
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div class="main-container">
+    <!-- Left Section: Branding -->
+    <div class="brand-section">
+      <h1 class="brand-title">PhishEye</h1>
+      <p class="brand-desc">
+        Experience a premium identity gateway built for secure access,
+        intelligent phishing detection, and enterprise-grade authentication.
+      </p>
+      <p class="brand-tagline">Stay secure. Stay fast. Stay ahead.</p>
+
+      <div class="features-list">
+        <div class="feature-item">
+          <div class="icon-circle">🔒</div>
+          <span>Advanced Zero-Trust Authentication</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon-circle">🛡️</div>
+          <span>AI-Powered Phishing Protection</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon-circle">⚡</div>
+          <span>Ultra-Fast Secure Login & OTP Flow</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon-circle">📊</div>
+          <span>Live Activity Monitoring & Reporting</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon-circle">🌐</div>
+          <span>Global Secure Cloud Infrastructure</span>
+        </div>
+      </div>
+
+      <div class="trusted-by">Trusted by organizations worldwide 👁️</div>
+    </div>
+
+    <!-- Right Section: Forms -->
+    <div class="form-section">
+      <div class="form-card">
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+          <div class="tab-indicator"></div>
+          <button class="tab-btn active" data-target="login">Login</button>
+          <button class="tab-btn" data-target="signup">Signup</button>
+        </div>
+
+        <!-- Forms Container -->
+        <div class="forms-container">
+          <!-- Login Form -->
+          <form id="loginForm" class="auth-form active">
+            <h2 class="form-title">Welcome Back</h2>
+
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" name="email" placeholder="Enter your email" required />
+            </div>
+
+            <div class="input-group">
+              <label>Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required />
+                <button type="button" class="toggle-password" data-target="loginPassword">
+                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-options">
+              <label class="checkbox-label">
+                <input type="checkbox" name="rememberDevice" checked /> Remember device
+              </label>
+              <a href="#" class="forgot-link">Need help?</a>
+            </div>
+
+            <button type="submit" class="primary-btn">Login</button>
+
+            <p class="switch-text">
+              No account? <a href="#" data-switch="signup">Create one</a>
+            </p>
+
+            <!-- DEV BYPASS -->
+            <button type="button" id="skipLoginBtn"
+              style="background: #333; margin-top: 1rem; width: 100%; padding: 10px; border-radius: 8px; color: #fff; cursor: pointer;">
+              🚀 Skip Login (Dev Mode)
+            </button>
+          </form>
+
+          <!-- Signup Form -->
+          <form id="signupForm" class="auth-form">
+            <h2 class="form-title">Join PhishEye</h2>
+
+            <div class="input-group">
+              <label>Full Name</label>
+              <input type="text" name="fullName" placeholder="Enter your name" required />
+            </div>
+
+            <div class="input-group">
+              <label>Business Email</label>
+              <input type="email" name="email" placeholder="Enter your email" required />
+            </div>
+
+            <div class="input-group">
+              <label>Mobile Number</label>
+              <div class="otp-row">
+                <input type="tel" id="signup-phone" name="phone" placeholder="+91" required />
+              </div>
+            </div>
+
+            <button type="button" id="sendOtpBtn" class="secondary-btn" style="width: auto; margin-bottom: 15px">
+              Send OTP
+            </button>
+
+            <!-- OTP Section (Hidden initially) -->
+            <div id="otpSection" hidden>
+              <div class="status-msg" id="otpStatus"></div>
+              <div class="input-group">
+                <label>Enter OTP</label>
+                <div class="otp-row">
+                  <input type="text" id="otpInput" name="otp" placeholder="6-digit code" maxlength="6" />
+                  <button type="button" id="verifyOtpBtn" class="secondary-btn">
+                    Verify
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="signupPassword" name="password" placeholder="Enter strong password"
+                  required />
+                <button type="button" class="toggle-password" data-target="signupPassword">
+                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Confirm Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password"
+                  required />
+                <button type="button" class="toggle-password" data-target="confirmPassword">
+                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="primary-btn">
+              Register & Continue
+            </button>
+
+            <p class="switch-text">
+              Already have access?
+              <a href="#" data-switch="login">Back to login</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Service Layer -->
+  <script src="../js/config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="login.js"></script>
+</body>
+
+</html>

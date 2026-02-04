@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History & Analytics</title>
+  <link rel="stylesheet" href="history.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-bar">
+    <div class="nav-left">
+      <!-- User Icon Trigger -->
+      <button id="userMenuBtn" class="user-menu-btn">
+        <div class="user-avatar">U</div>
+      </button>
+
+      <!-- Logo -->
+      <div class="logo-wrapper">
+        <div class="logo-icon">
+          <i data-lucide="eye"></i>
+        </div>
+        <span class="brand-name">PhishEye</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Panel (Hidden by default) -->
+  <div id="navPanel" class="nav-panel hidden">
+    <div class="panel-header">
+      <div class="panel-user-info">
+        <div class="panel-user-avatar">
+          <i data-lucide="user"></i>
+        </div>
+        <div>
+          <span class="panel-user-name">User</span>
+          <span class="panel-user-email">user@example.com</span>
+        </div>
+      </div>
+    </div>
+    <nav class="panel-menu">
+      <button class="panel-item" data-tab="dashboard">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Dashboard</span>
+      </button>
+      <button class="panel-item" data-tab="quickscan">
+        <i data-lucide="scan"></i>
+        <span>Quick Scan</span>
+      </button>
+      <button class="panel-item active" data-tab="history">
+        <i data-lucide="clock"></i>
+        <span>History</span>
+      </button>
+      <button class="panel-item" data-tab="settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </button>
+      <div class="panel-divider"></div>
+      <button class="panel-item logout">
+        <i data-lucide="log-out"></i>
+        <span>Logout</span>
+      </button>
+    </nav>
+  </div>
+
+  <main class="page">
+    <header class="hero" data-animate>
+      <div>
+        <p class="eyebrow">Smart Anti-Phishing Dashboard</p>
+        <h1>History Analytics</h1>
+        <p class="lead">
+          Track live site evaluations, threat distribution, and protection KPIs from a premium
+          cyber-security workspace.
+        </p>
+      </div>
+      <button class="cta">Export Report</button>
+    </header>
+
+    <section class="top-cards" data-animate>
+      <article class="history-card safe">
+        <div class="row">
+          <span class="url">google.com</span>
+          <span class="badge safe">Safe</span>
+        </div>
+        <p class="subtitle">Certificate chain validated • clean redirect history</p>
+        <div class="meta">
+          <span>Risk Score <strong>12%</strong></span>
+          <span>12:30 PM</span>
+        </div>
+        <button class="ghost-btn">View Report</button>
+      </article>
+
+      <article class="history-card malicious">
+        <div class="row">
+          <span class="url">phish-verify.com</span>
+          <span class="badge malicious">Malicious</span>
+        </div>
+        <p class="subtitle">Active payload blocks autofill credentials in real time</p>
+        <div class="meta">
+          <span>Risk Score <strong>96%</strong></span>
+          <span>12:10 PM</span>
+        </div>
+        <button class="ghost-btn">View Report</button>
+      </article>
+
+      <article class="history-card suspicious">
+        <div class="row">
+          <span class="url">mybank-login.xyz</span>
+          <span class="badge suspicious">Suspicious</span>
+        </div>
+        <p class="subtitle">New domain impersonating finance brand • flagged for review</p>
+        <div class="meta">
+          <span>Risk Score <strong>72%</strong></span>
+          <span>11:50 AM</span>
+        </div>
+        <button class="ghost-btn">View Report</button>
+      </article>
+    </section>
+
+    <section class="middle" data-animate>
+      <div class="chart-card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Live Threat Mix</p>
+            <h2>Security Distribution</h2>
+          </div>
+          <span class="badge ghost">24h</span>
+        </div>
+        <div class="chart-shell">
+          <canvas id="securityChart" width="280" height="280" aria-label="Security Distribution"></canvas>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <article class="analytics-card total">
+          <div class="icon-ring">
+            <span class="icon">📊</span>
+          </div>
+          <div>
+            <p>Total Scans</p>
+            <strong>24</strong>
+            <small>+4 vs yesterday</small>
+          </div>
+        </article>
+        <article class="analytics-card safe">
+          <div class="icon-ring">
+            <span class="icon">🛡️</span>
+          </div>
+          <div>
+            <p>Safe Count</p>
+            <strong>10</strong>
+            <small>42% of traffic</small>
+          </div>
+        </article>
+        <article class="analytics-card suspicious">
+          <div class="icon-ring">
+            <span class="icon">⚠️</span>
+          </div>
+          <div>
+            <p>Suspicious</p>
+            <strong>7</strong>
+            <small>29% require review</small>
+          </div>
+        </article>
+        <article class="analytics-card malicious">
+          <div class="icon-ring">
+            <span class="icon">🚫</span>
+          </div>
+          <div>
+            <p>Malicious</p>
+            <strong>7</strong>
+            <small>29% blocked</small>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="analytics-bottom" data-animate>
+      <div class="timeline-column">
+        <h3>Recent Events</h3>
+        <div class="timeline-premium">
+          <div class="timeline-item safe">
+            <span class="dot"></span>
+            <div>
+              <p>google.com</p>
+              <small>Safe • 12:30 PM</small>
+            </div>
+          </div>
+
+          <div class="timeline-item malicious">
+            <span class="dot"></span>
+            <div>
+              <p>phish-verify.com</p>
+              <small>Malicious • 12:10 PM</small>
+            </div>
+          </div>
+
+          <div class="timeline-item suspicious">
+            <span class="dot"></span>
+            <div>
+              <p>mybank-login.xyz</p>
+              <small>Suspicious • 11:50 AM</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mini-column">
+        <div class="mini-stack">
+          <article class="mini-card safe">
+            <div>
+              <p class="url">docs.safecloud.com</p>
+              <span class="badge safe">Safe</span>
+            </div>
+            <div class="details">
+              <span>1:40 PM</span>
+              <strong>Risk 8%</strong>
+            </div>
+          </article>
+
+          <article class="mini-card suspicious">
+            <div>
+              <p class="url">secure-mybank.com</p>
+              <span class="badge suspicious">Suspicious</span>
+            </div>
+            <div class="details">
+              <span>1:10 PM</span>
+              <strong>Risk 65%</strong>
+            </div>
+          </article>
+
+          <article class="mini-card malicious">
+            <div>
+              <p class="url">phish-alert-login.com</p>
+              <span class="badge malicious">Malicious</span>
+            </div>
+            <div class="details">
+              <span>12:45 PM</span>
+              <strong>Risk 92%</strong>
+            </div>
+          </article>
+        </div>
+
+        <article class="summary-card">
+          <p>Last Sync: <strong>10 minutes ago</strong></p>
+          <p>36 new scanned URLs • 3 threats detected</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- API Service Layer -->
+  <script src="../js/config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="history.js"></script>
+</body>
+
+</html>
