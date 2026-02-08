@@ -48,18 +48,43 @@ document.addEventListener('DOMContentLoaded', () => {
   // Logout button
   const logoutBtn = document.querySelector('.logout');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', async () => {
       if (confirm('Are you sure you want to logout?')) {
-        window.location.href = '../login-page/login.html';
+        try {
+          await api.logout();
+        } finally {
+          window.location.href = '../login-page/login.html';
+        }
       }
     });
   }
+
+  // Load user profile
+  loadUserProfile();
 
   // --- Settings Page Specific Logic ---
   initSettingsNavigation();
   loadSettings();
   initControls();
 });
+
+// Load user profile
+async function loadUserProfile() {
+  try {
+    const user = api.getUser();
+    if (user) {
+      const userName = document.querySelector('.panel-user-name');
+      const userEmail = document.querySelector('.panel-user-email');
+      const userAvatar = document.querySelector('.user-avatar');
+
+      if (userName) userName.textContent = user.full_name || user.fullName || 'User';
+      if (userEmail) userEmail.textContent = user.email || '';
+      if (userAvatar) userAvatar.textContent = (user.full_name || user.fullName || 'U')[0].toUpperCase();
+    }
+  } catch (error) {
+    console.error('Error loading user profile:', error);
+  }
+}
 
 /* ---------- Settings Sidebar Navigation ---------- */
 function initSettingsNavigation() {

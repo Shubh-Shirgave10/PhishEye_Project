@@ -20,6 +20,13 @@
                 <span class="url-text">No active tab detected</span>
             </div>
 
+            <div id="authRequired" class="auth-required hidden">
+                <div class="lock-icon">🔒</div>
+                <h3>Authentication Required</h3>
+                <p>Please login to the PhishEye dashboard to enable real-time protection.</p>
+                <button id="goToDashBtn" class="primary-btn">Open Dashboard</button>
+            </div>
+
             <div id="resultSection" class="result-section hidden">
                 <div class="verdict-box" id="verdictBox">
                     <h2 id="verdictText">SAFE</h2>
@@ -43,6 +50,11 @@
                 <div id="cachedBadge" class="cached-badge hidden">
                     ⚡ Cached Result
                 </div>
+
+                <div class="explanation-box" id="explanationBox">
+                    <h3>Analysis Explanation</h3>
+                    <p id="explanationText">No explanation available.</p>
+                </div>
             </div>
 
             <div id="loadingSection" class="loading-section hidden">
@@ -54,7 +66,9 @@
                 <p id="errorText">Connection Failed</p>
             </div>
 
-            <button id="scanBtn" class="primary-btn">Scan This Site</button>
+            <div class="button-group">
+                <button id="scanBtn" class="primary-btn">Scan URL</button>
+            </div>
         </div>
 
         <footer>

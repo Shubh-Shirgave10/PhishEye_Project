@@ -27,10 +27,3 @@ class Scan(db.Model):
             'details': self.details or {}
         }
 
-class OTP(db.Model):
-    __tablename__ = 'otps'
-    id = db.Column(db.Integer, primary_key=True)
-    phone_number = db.Column(db.String(20), nullable=False)
-    otp_code = db.Column(db.String(6), nullable=False)
-    expiry = db.Column(db.DateTime, nullable=False)
-    verified = db.Column(db.Boolean, default=False)

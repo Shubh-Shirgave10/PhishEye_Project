@@ -34,6 +34,7 @@ header h1 {
   font-size: 24px;
   background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -97,9 +98,23 @@ header p {
   font-weight: 800;
 }
 
-.verdict-safe { color: var(--safe); border-color: var(--safe); background: rgba(34, 197, 94, 0.1); }
-.verdict-suspicious { color: var(--suspicious); border-color: var(--suspicious); background: rgba(245, 158, 11, 0.1); }
-.verdict-malicious { color: var(--malicious); border-color: var(--malicious); background: rgba(239, 68, 68, 0.1); }
+.verdict-safe {
+  color: var(--safe);
+  border-color: var(--safe);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.verdict-suspicious {
+  color: var(--suspicious);
+  border-color: var(--suspicious);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.verdict-malicious {
+  color: var(--malicious);
+  border-color: var(--malicious);
+  background: rgba(239, 68, 68, 0.1);
+}
 
 /* Stats */
 .stats-grid {
@@ -152,7 +167,9 @@ header p {
 }
 
 /* Utils */
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
 .loading-section {
   text-align: center;
@@ -170,7 +187,9 @@ header p {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-section {
@@ -188,4 +207,75 @@ footer {
   font-size: 10px;
   color: #475569;
   margin-top: 12px;
+}
+
+/* --- Explanation and Auth Styles --- */
+.explanation-box {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+.explanation-box h3 {
+  font-size: 10px;
+  color: #94a3b8;
+  margin: 0 0 5px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.explanation-box p {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.auth-required {
+  text-align: center;
+  padding: 30px 15px;
+}
+
+.auth-required .lock-icon {
+  font-size: 32px;
+  margin-bottom: 15px;
+}
+
+.auth-required h3 {
+  color: #f8fafc;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.auth-required p {
+  color: #94a3b8;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid #22d3ee;
+  color: #22d3ee;
+  padding: 8px 12px;
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
 }

@@ -126,9 +126,30 @@ class APIService {
         if (response.success && response.token) {
             this.setToken(response.token);
             this.setUser(response.user);
+            // Sync token to extension immediately after login
+            this._syncTokenToExtension(response.token);
+            // Also sync after a short delay to ensure content script is ready
+            setTimeout(() => this._syncTokenToExtension(response.token), 500);
         }
 
         return response;
+    }
+
+    // Sync token to PhishEye extension
+    _syncTokenToExtension(token) {
+        try {
+            // Method 1: Custom Event (Best for communication via content scripts)
+            // This will be picked up by content.js which forwards to background.js
+            window.postMessage({ type: 'PHISHEYE_AUTH_SYNC', token: token }, window.location.origin);
+            console.log('[PhishEye API] Token sync event emitted to extension');
+            
+            // Also try to store directly in localStorage as backup (content script can read this)
+            // The content script will check for this and sync it
+            localStorage.setItem('phisheye_auth_sync_token', token);
+            localStorage.setItem('phisheye_auth_sync_time', Date.now().toString());
+        } catch (e) {
+            console.warn('[PhishEye API] Extension sync failed', e);
+        }
     }
 
     // User signup
@@ -136,14 +157,32 @@ class APIService {
         return await this.post('/auth/signup', userData, { auth: false });
     }
 
+    // Social login (Google/Facebook)
+    async socialLogin(email, fullName, provider) {
+        const response = await this.post('/auth/social-login', { email, fullName, provider }, { auth: false });
+
+        if (response.success && response.token) {
+            this.setToken(response.token);
+            this.setUser(response.user);
+            this._syncTokenToExtension(response.token);
+        }
+
+        return response;
+    }
+
     // Send OTP
-    async sendOTP(phone) {
-        return await this.post('/auth/send-otp', { phone }, { auth: false });
+    async sendOTP(email, purpose = 'signup') {
+        return await this.post('/auth/send-otp', { email, purpose }, { auth: false });
     }
 
     // Verify OTP
-    async verifyOTP(phone, otp) {
-        return await this.post('/auth/verify-otp', { phone, otp }, { auth: false });
+    async verifyOTP(email, otp, purpose = 'signup') {
+        return await this.post('/auth/verify-otp', { email, otp, purpose }, { auth: false });
+    }
+
+    // Reset password
+    async resetPassword(email, password) {
+        return await this.post('/auth/reset-password', { email, password }, { auth: false });
     }
 
     // User logout
@@ -184,6 +223,11 @@ class APIService {
     // Get distribution analytics (for pie chart)
     async getDistribution() {
         return await this.get('/analytics/distribution');
+    }
+
+    // Get latest scan result
+    async getLatestScan() {
+        return await this.get('/analytics/latest-scan');
     }
 
     // Delete specific scan

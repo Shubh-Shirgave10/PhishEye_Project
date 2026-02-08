@@ -40,12 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.toggle('active', btn.dataset.target === target);
         });
 
+        const indicator = document.querySelector('.tab-indicator');
+
         if (target === 'signup') {
-            tabIndicator.style.transform = 'translateX(100%)';
-            formsContainer.style.transform = 'translateX(-50%)';
-        } else {
-            tabIndicator.style.transform = 'translateX(0)';
+            indicator.style.transform = 'translateX(100%)';
+            formsContainer.style.transform = 'translateX(-33.333%)';
+        } else if (target === 'login') {
+            indicator.style.transform = 'translateX(0)';
             formsContainer.style.transform = 'translateX(0)';
+        } else if (target === 'forgotPassword') {
+            // For forgot password, we don't move the tab indicator but slide the container
+            formsContainer.style.transform = 'translateX(-66.666%)';
         }
 
         authForms.forEach(form => {
@@ -56,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        setTimeout(adjustHeight, 50);
+        setTimeout(adjustHeight, 300); // Wait for slide transition
     }
 
     tabBtns.forEach(btn => {
@@ -70,88 +75,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /* ---------------------- OTP LOGIC WITH REAL API ---------------------- */
-    const sendOtpBtn = document.getElementById('sendOtpBtn');
-    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-    const otpSection = document.getElementById('otpSection');
-    const otpInput = document.getElementById('otpInput');
-    const otpStatus = document.getElementById('otpStatus');
-    const signupPhone = document.getElementById('signup-phone');
-
-    let isOtpVerified = false;
-
-    if (sendOtpBtn) {
-        sendOtpBtn.addEventListener('click', async () => {
-            const phone = signupPhone.value.trim();
-
-            // Validate phone number
-            if (!isValidPhone(phone)) {
-                showError('Please enter a valid 10-digit phone number', 'otpStatus');
-                adjustHeight();
-                return;
-            }
-
-            const originalText = showLoading(sendOtpBtn);
+    /* ---------------------- SOCIAL LOGIN ---------------------- */
+    const socialBtns = document.querySelectorAll('.social-btn');
+    socialBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const provider = btn.classList.contains('google-btn') ? 'Google' : 'Facebook';
+            const email = `social_${provider.toLowerCase()}@example.com`; // In a real app, this comes from the social provider's SDK
+            const fullName = `Social ${provider} User`;
 
             try {
-                // Call real API endpoint
-                const response = await api.sendOTP(phone);
-
-                if (response.success) {
-                    otpSection.hidden = false;
-                    showSuccess(`OTP sent to ${phone}`, 'otpStatus');
-                    sendOtpBtn.textContent = 'Resend OTP';
-                    otpInput.focus();
+                const res = await api.socialLogin(email, fullName, provider);
+                if (res.success) {
+                    window.location.href = '../Main_Dash/mainDash.html';
                 } else {
-                    showError(response.message || 'Failed to send OTP', 'otpStatus');
+                    alert(res.message || 'Social login failed');
                 }
-            } catch (error) {
-                console.error('Send OTP error:', error);
-                showError(error.message || 'Failed to send OTP. Please try again.', 'otpStatus');
-            } finally {
-                hideLoading(sendOtpBtn, originalText);
-                adjustHeight();
+            } catch (err) {
+                console.error('Social login error:', err);
+                alert('Social login failed. Please try again.');
             }
         });
-    }
-
-    if (verifyOtpBtn) {
-        verifyOtpBtn.addEventListener('click', async () => {
-            const code = otpInput.value.trim();
-            const phone = signupPhone.value.trim();
-
-            if (code.length !== 6) {
-                showError('Enter a 6-digit code', 'otpStatus');
-                adjustHeight();
-                return;
-            }
-
-            const originalText = showLoading(verifyOtpBtn);
-
-            try {
-                // Call real API endpoint
-                const response = await api.verifyOTP(phone, code);
-
-                if (response.success && response.verified) {
-                    isOtpVerified = true;
-                    showSuccess('OTP Verified ✔', 'otpStatus');
-                    otpInput.disabled = true;
-                    verifyOtpBtn.disabled = true;
-                    verifyOtpBtn.textContent = 'Verified';
-                } else {
-                    showError(response.message || 'Invalid OTP', 'otpStatus');
-                }
-            } catch (error) {
-                console.error('Verify OTP error:', error);
-                showError(error.message || 'Failed to verify OTP. Please try again.', 'otpStatus');
-            } finally {
-                if (!isOtpVerified) {
-                    hideLoading(verifyOtpBtn, originalText);
-                }
-                adjustHeight();
-            }
-        });
-    }
+    });
 
     /* ---------------------- LOGIN FORM WITH REAL API ---------------------- */
     const loginForm = document.getElementById('loginForm');
@@ -197,63 +141,175 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ---------------------- SIGNUP FORM WITH REAL API ---------------------- */
-    const signupForm = document.getElementById('signupForm');
+    /* ---------------------- SIGNUP FLOW (OTP) ---------------------- */
+    const sendSignupOtpBtn = document.getElementById('sendSignupOtpBtn');
+    const verifySignupOtpBtn = document.getElementById('verifySignupOtpBtn');
+    const signupOtpSection = document.getElementById('signupOtpSection');
+    const signupStep1 = document.getElementById('signupStep1');
+    const signupStep2 = document.getElementById('signupStep2');
+    const signupEmailInput = signupForm.querySelector('input[name="email"]');
+
+    sendSignupOtpBtn.addEventListener('click', async () => {
+        const email = signupEmailInput.value.trim();
+        if (!isValidEmail(email)) {
+            alert('Please enter a valid business email');
+            return;
+        }
+
+        const originalText = showLoading(sendSignupOtpBtn);
+        try {
+            const res = await api.sendOTP(email, 'signup');
+            if (res.success) {
+                signupOtpSection.classList.remove('hidden');
+                sendSignupOtpBtn.textContent = 'Resend OTP';
+                
+                // If OTP is in response (development mode), show it to user
+                if (res.otp) {
+                    alert(`OTP sent! Your verification code is: ${res.otp}\n\n(This is shown because email is not configured. In production, check your email.)`);
+                } else {
+                    alert('OTP sent to your email! Please check your inbox.');
+                }
+            } else {
+                alert(res.message || 'Failed to send OTP');
+            }
+        } catch (err) {
+            console.error('OTP send error:', err);
+            alert('Error sending OTP: ' + (err.message || 'Please try again'));
+        } finally {
+            hideLoading(sendSignupOtpBtn, originalText);
+        }
+    });
+
+    verifySignupOtpBtn.addEventListener('click', async () => {
+        const email = signupEmailInput.value.trim();
+        const otp = document.getElementById('signupOtp').value.trim();
+
+        if (otp.length !== 6) {
+            alert('Enter a valid 6-digit OTP');
+            return;
+        }
+
+        const originalText = showLoading(verifySignupOtpBtn);
+        try {
+            const res = await api.verifyOTP(email, otp, 'signup');
+            if (res.success) {
+                signupStep1.classList.add('hidden');
+                signupStep2.classList.remove('hidden');
+                adjustHeight();
+                alert('Email verified successfully!');
+            } else {
+                alert(res.message || 'Invalid OTP');
+            }
+        } catch (err) {
+            alert('Verification error');
+        } finally {
+            hideLoading(verifySignupOtpBtn, originalText);
+        }
+    });
+
     if (signupForm) {
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            e.stopPropagation();
-
-            // Validation skipped for testing
-            // if (!isOtpVerified) { ... }
-
-            // Get form data
             const fullName = signupForm.querySelector('input[name="fullName"]').value.trim();
-            const email = signupForm.querySelector('input[name="email"]').value.trim();
-            const phone = signupPhone.value.trim();
-            const password = signupForm.querySelector('input[placeholder="Enter strong password"]').value;
-            const confirmPassword = signupForm.querySelector('input[placeholder="Re-enter password"]').value;
+            const email = signupEmailInput.value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
 
-            // Simple check only
-            if (!email || !password) {
-                alert('Email and Password are required');
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
                 return;
             }
 
             const submitBtn = signupForm.querySelector('button[type="submit"]');
             const originalText = showLoading(submitBtn);
-            submitBtn.textContent = 'Registering...';
 
             try {
-                // Call real API endpoint
-                const response = await api.signup({
-                    fullName,
-                    email,
-                    phone,
-                    password,
-                    otp: otpInput.value.trim()
-                });
-
-                if (response.success) {
-                    // Reset form and show success
-                    signupForm.reset();
-                    isOtpVerified = false;
-                    otpSection.hidden = true;
-                    otpInput.disabled = false;
-
-                    alert('Registration Successful! Please Login.');
-                    switchTab('login');
+                const res = await api.signup({ fullName, email, password });
+                if (res.success) {
+                    alert('Account created! Please login.');
+                    location.reload(); // Quick reset
                 } else {
-                    alert(response.message || 'Registration failed. Please try again.');
+                    alert(res.message);
                 }
-            } catch (error) {
-                console.error('Signup error:', error);
-                alert(error.message || 'Registration failed. Please try again.');
+            } catch (err) {
+                alert('Signup failed');
             } finally {
                 hideLoading(submitBtn, originalText);
             }
         });
     }
+
+    /* ---------------------- FORGOT PASSWORD ---------------------- */
+    const forgotForm = document.getElementById('forgotPasswordForm');
+    const sendResetOtpBtn = document.getElementById('sendResetOtpBtn');
+    const verifyAndResetBtn = document.getElementById('verifyAndResetBtn');
+    const resetOtpSection = document.getElementById('resetOtpSection');
+
+    sendResetOtpBtn.addEventListener('click', async () => {
+        const email = document.getElementById('resetEmail').value.trim();
+        if (!isValidEmail(email)) {
+            alert('Enter your registered email');
+            return;
+        }
+
+        const originalText = showLoading(sendResetOtpBtn);
+        try {
+            const res = await api.sendOTP(email, 'reset_password');
+            if (res.success) {
+                resetOtpSection.classList.remove('hidden');
+                sendResetOtpBtn.classList.add('hidden');
+                verifyAndResetBtn.classList.remove('hidden');
+                adjustHeight();
+                
+                // If OTP is in response (development mode), show it to user
+                if (res.otp) {
+                    alert(`Reset OTP sent! Your verification code is: ${res.otp}\n\n(This is shown because email is not configured. In production, check your email.)`);
+                } else {
+                    alert('Reset OTP sent to your email! Please check your inbox.');
+                }
+            } else {
+                alert(res.message);
+            }
+        } catch (err) {
+            console.error('Reset OTP error:', err);
+            alert('Error: ' + (err.message || 'Please try again'));
+        } finally {
+            hideLoading(sendResetOtpBtn, originalText);
+        }
+    });
+
+    verifyAndResetBtn.addEventListener('click', async () => {
+        const email = document.getElementById('resetEmail').value.trim();
+        const otp = document.getElementById('resetOtp').value.trim();
+        const password = document.getElementById('resetNewPassword').value;
+
+        if (otp.length !== 6 || password.length < 6) {
+            alert('Please provide valid OTP and a new password (min 6 chars)');
+            return;
+        }
+
+        const originalText = showLoading(verifyAndResetBtn);
+        try {
+            // First verify OTP
+            const vRes = await api.verifyOTP(email, otp, 'reset_password');
+            if (vRes.success) {
+                // Then Reset
+                const rRes = await api.resetPassword(email, password);
+                if (rRes.success) {
+                    alert('Password reset successful! You can now login.');
+                    switchTab('login');
+                } else {
+                    alert(rRes.message);
+                }
+            } else {
+                alert('Invalid OTP');
+            }
+        } catch (err) {
+            alert('Reset failed');
+        } finally {
+            hideLoading(verifyAndResetBtn, originalText);
+        }
+    });
 
     // Initial adjustment
     adjustHeight();
@@ -261,15 +317,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if already logged in
     if (api.isAuthenticated()) {
         window.location.href = '../Main_Dash/mainDash.html';
-    }
-
-    // DEV SKIP LOGIN
-    const skipBtn = document.getElementById('skipLoginBtn');
-    if (skipBtn) {
-        skipBtn.addEventListener('click', () => {
-            localStorage.setItem('phisheye_auth_token', 'dev_bypass_token');
-            localStorage.setItem('phisheye_user', JSON.stringify({ username: 'DevUser', email: 'dev@test.com' }));
-            window.location.href = '../Main_Dash/mainDash.html';
-        });
     }
 });

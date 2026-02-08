@@ -20,129 +20,117 @@ class URLScanner:
     def __init__(self):
         self.predictor = PhishingPredictor()
         self.preprocessor = URLPreprocessor()
-        
-        # Fallback patterns
-        self.suspicious_keywords = [
-            'verify', 'account', 'suspend', 'update', 'confirm', 'login',
-            'password', 'secure', 'banking', 'paypal', 'amazon', 'ebay'
-        ]
-        
-        self.malicious_patterns = [
-            r'\.tk$', r'\.ml$', r'\.ga$', r'\.cf$', r'\.gq$',  # Free domains
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',  # IP addresses
-            r'bit\.ly', r'tinyurl',  # URL shorteners
-        ]
     
-    def scan(self, url, user_id=None):
+    def scan(self, url, user_id, deep_scan=True):
         """
         Main entry point for scanning.
         1. Normalize URL
         2. Check Cache
-        3. If miss, run ML
-        4. Store and return
+        3. If miss, run Predictive Engine
+        4. Store and return (always save to user's history)
         """
-        # 1. Normalize
+        # 1. Normalize and validate URL
+        # Ensure URL has a protocol
+        if not url.startswith(('http://', 'https://', 'ftp://', 'file://')):
+            url = 'http://' + url
+        
         normalized_url = self.preprocessor.preprocess(url)
         
-        # 2. Check Cache
+        # 2. Check Cache (Recent matches within 24 hours)
         cached_result = self._check_cache(normalized_url)
+        
+        # 3. If cache hit, still save to user's history (but mark as cached)
         if cached_result:
             logger.info(f"CACHE HIT: {normalized_url}")
+            # Always save to user's history, even if cached
+            # Check if this user already has this scan in their history (to avoid duplicates)
+            existing_user_scan = Scan.query.filter_by(
+                user_id=user_id,
+                normalized_url=normalized_url
+            ).order_by(Scan.created_at.desc()).first()
+            
+            # Only save if user doesn't have this scan yet, or if it's older than 1 minute
+            if not existing_user_scan or (datetime.utcnow() - existing_user_scan.created_at).total_seconds() > 60:
+                self._save_to_db(user_id, normalized_url, cached_result, None)
             return cached_result
             
-        logger.info(f"CACHE MISS: {normalized_url} - Running ML...")
+        logger.info(f"CACHE MISS: {normalized_url} - Running Analysis Pipeline...")
         
-        # 3. Run ML Pipeline
-        ml_result = self.predictor.predict(url) # Predictor handles internal preprocessing too, but we need fresh features
+        # 4. Run Modernized Prediction Engine
+        # Returns: {result, confidence, signals, explanation, features}
+        analysis = self.predictor.predict(url, deep_scan=deep_scan)
         
-        if ml_result:
-            # Construct result
-            scan_result = {
-                'url': url,
-                'normalized_url': normalized_url,
-                'verdict': ml_result['result'],
-                'risk_score': ml_result['confidence'], # Using confidence as risk score for now
-                'confidence': ml_result['confidence'],
-                'cached': False,
-                'threats': ml_result['signals'],
-                'details': {
-                    'ml_scan': True,
-                    'features': ml_result['features']
-                }
+        # Construct production-ready result
+        scan_result = {
+            'url': url,
+            'status': analysis['result'],
+            'confidenceScore': analysis['confidence'],
+            'explanation': analysis['explanation'],
+            'threats': analysis['signals'],
+            'cached': False,
+            'details': {
+                'deep_scan': deep_scan,
+                'features': analysis['features']
             }
-            
-            # Generate feature hash for signature
-            feature_str = json.dumps(ml_result['features'], sort_keys=True)
-            feature_hash = hashlib.sha256(feature_str.encode()).hexdigest()
-            
-            # 4. Store Result
-            if user_id:
-                self._save_to_db(user_id, scan_result, feature_hash)
-            
-            return scan_result
-            
-        else:
-            # Fallback if ML fails
-            return self._fallback_scan(url, normalized_url)
+        }
+        
+        # Generate feature hash for signature verification
+        feature_str = json.dumps(analysis['features'], sort_keys=True)
+        feature_hash = hashlib.sha256(feature_str.encode()).hexdigest()
+        
+        # 5. Store Result (always save to user's history)
+        self._save_to_db(user_id, normalized_url, scan_result, feature_hash)
+        
+        return scan_result
 
     def _check_cache(self, normalized_url):
         """Checks DB for recent existing scan of this URL"""
-        # Look for scan within last 24 hours (optional policy) or just latest
-        recent_scan = Scan.query.filter_by(normalized_url=normalized_url)\
-            .order_by(Scan.created_at.desc()).first()
+        cache_expiry = datetime.utcnow() - timedelta(hours=24)
+        recent_scan = Scan.query.filter(
+            Scan.normalized_url == normalized_url,
+            Scan.created_at >= cache_expiry
+        ).order_by(Scan.created_at.desc()).first()
             
         if recent_scan:
             return {
                 'url': recent_scan.url,
-                'normalized_url': recent_scan.normalized_url,
-                'verdict': recent_scan.status.upper(),
-                'risk_score': recent_scan.confidence_score,
-                'confidence': recent_scan.confidence_score,
-                'cached': True,
+                'status': recent_scan.status.upper(),
+                'confidenceScore': recent_scan.confidence_score,
+                'explanation': recent_scan.details.get('explanation', 'Result retrieved from recent cache.'),
                 'threats': recent_scan.threats,
+                'cached': True,
                 'details': recent_scan.details
             }
         return None
 
-    def _save_to_db(self, user_id, result, feature_hash):
+    def _save_to_db(self, user_id, normalized_url, result, feature_hash):
         """Saves scan result to database"""
         try:
+            # We store the explanation in the 'details' JSON field
+            details = result['details']
+            details['explanation'] = result['explanation']
+
             new_scan = Scan(
                 user_id=user_id,
                 url=result['url'],
-                normalized_url=result['normalized_url'],
-                status=result['verdict'].lower(),
-                confidence_score=result['risk_score'],
-                scan_type='quick',
+                normalized_url=normalized_url,
+                status=result['status'].lower(),
+                confidence_score=result['confidenceScore'],
+                scan_type='deep' if details.get('deep_scan') else 'quick',
                 threats=result['threats'],
-                details=result['details'],
+                details=details,
                 feature_hash=feature_hash
             )
             db.session.add(new_scan)
             db.session.commit()
-            logger.info(f"Stored result for {result['normalized_url']}")
+            logger.info(f"Stored result for {normalized_url}")
         except Exception as e:
             logger.error(f"Failed to save scan result: {str(e)}")
             db.session.rollback()
 
-    def _fallback_scan(self, url, normalized_url):
-        """Rule-based fallback"""
-        # (Simplified fallback logic reuse)
-        return {
-            'url': url,
-            'normalized_url': normalized_url,
-            'verdict': 'SUSPICIOUS',
-            'risk_score': 0.5,
-            'confidence': 0.5,
-            'cached': False,
-            'threats': ['scan_error', 'fallback_used'],
-            'details': {'error': 'ML Service Unavailable'}
-        }
-
-    # API compatibility wrappers
-    def quick_scan(self, url, user_id=None):
-        return self.scan(url, user_id)
+    # Compatibility wrappers
+    def quick_scan(self, url, user_id):
+        return self.scan(url, user_id, deep_scan=False)
         
-    def deep_scan(self, url, user_id=None):
-        # reuse quick scan for now as base
-        return self.scan(url, user_id)
+    def deep_scan(self, url, user_id):
+        return self.scan(url, user_id, deep_scan=True)

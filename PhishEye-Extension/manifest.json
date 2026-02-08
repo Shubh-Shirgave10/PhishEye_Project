@@ -5,10 +5,22 @@
     "description": "Real-time AI-powered phishing detection extension",
     "permissions": [
         "activeTab",
-        "storage"
+        "storage",
+        "tabs",
+        "notifications"
     ],
     "host_permissions": [
         "http://localhost:5000/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
     ],
     "action": {
         "default_popup": "popup.html"

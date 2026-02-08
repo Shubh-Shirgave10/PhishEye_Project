@@ -87,95 +87,144 @@
               <label class="checkbox-label">
                 <input type="checkbox" name="rememberDevice" checked /> Remember device
               </label>
-              <a href="#" class="forgot-link">Need help?</a>
+              <a href="#" class="forgot-link" data-switch="forgotPassword">Forgot Password?</a>
             </div>
 
             <button type="submit" class="primary-btn">Login</button>
+
+            <!-- Social Login -->
+            <div class="divider">
+              <span>OR</span>
+            </div>
+
+            <div class="social-login">
+              <button type="button" class="social-btn google-btn">
+                <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google">
+                Continue with Google
+              </button>
+              <button type="button" class="social-btn facebook-btn">
+                <img src="https://www.svgrepo.com/show/448224/facebook.svg" alt="Facebook">
+                Continue with Facebook
+              </button>
+            </div>
 
             <p class="switch-text">
               No account? <a href="#" data-switch="signup">Create one</a>
             </p>
 
-            <!-- DEV BYPASS -->
-            <button type="button" id="skipLoginBtn"
-              style="background: #333; margin-top: 1rem; width: 100%; padding: 10px; border-radius: 8px; color: #fff; cursor: pointer;">
-              🚀 Skip Login (Dev Mode)
-            </button>
           </form>
 
           <!-- Signup Form -->
           <form id="signupForm" class="auth-form">
             <h2 class="form-title">Join PhishEye</h2>
 
-            <div class="input-group">
-              <label>Full Name</label>
-              <input type="text" name="fullName" placeholder="Enter your name" required />
-            </div>
+            <!-- Registration Step 1: Send OTP -->
+            <div id="signupStep1">
+              <div class="input-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="Enter your email" required />
+              </div>
 
-            <div class="input-group">
-              <label>Business Email</label>
-              <input type="email" name="email" placeholder="Enter your email" required />
-            </div>
+              <div class="input-group">
+                <label>Verification</label>
+                <div class="otp-action-wrapper">
+                  <button type="button" id="sendSignupOtpBtn" class="secondary-btn">Send OTP to Email</button>
+                </div>
+              </div>
 
-            <div class="input-group">
-              <label>Mobile Number</label>
-              <div class="otp-row">
-                <input type="tel" id="signup-phone" name="phone" placeholder="+91" required />
+              <div id="signupOtpSection" class="hidden">
+                <div class="input-group">
+                  <label>Enter 6-Digit OTP</label>
+                  <input type="text" id="signupOtp" placeholder="000000" maxlength="6" />
+                </div>
+                <button type="button" id="verifySignupOtpBtn" class="primary-btn">Verify OTP</button>
               </div>
             </div>
 
-            <button type="button" id="sendOtpBtn" class="secondary-btn" style="width: auto; margin-bottom: 15px">
-              Send OTP
-            </button>
-
-            <!-- OTP Section (Hidden initially) -->
-            <div id="otpSection" hidden>
-              <div class="status-msg" id="otpStatus"></div>
+            <!-- Registration Step 2: Full Details (Hidden till OTP verified) -->
+            <div id="signupStep2" class="hidden">
               <div class="input-group">
-                <label>Enter OTP</label>
-                <div class="otp-row">
-                  <input type="text" id="otpInput" name="otp" placeholder="6-digit code" maxlength="6" />
-                  <button type="button" id="verifyOtpBtn" class="secondary-btn">
-                    Verify
+                <label>Full Name</label>
+                <input type="text" name="fullName" placeholder="Enter your name" />
+              </div>
+
+              <div class="input-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                  <input type="password" id="signupPassword" name="password" placeholder="Enter strong password" />
+                  <button type="button" class="toggle-password" data-target="signupPassword">
+                    <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
                   </button>
                 </div>
               </div>
-            </div>
 
-            <div class="input-group">
-              <label>Password</label>
-              <div class="password-wrapper">
-                <input type="password" id="signupPassword" name="password" placeholder="Enter strong password"
-                  required />
-                <button type="button" class="toggle-password" data-target="signupPassword">
-                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                </button>
+              <div class="input-group">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                  <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password" />
+                  <button type="button" class="toggle-password" data-target="confirmPassword">
+                    <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                </div>
               </div>
+
+              <button type="submit" class="primary-btn">Register & Continue</button>
             </div>
 
-            <div class="input-group">
-              <label>Confirm Password</label>
-              <div class="password-wrapper">
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password"
-                  required />
-                <button type="button" class="toggle-password" data-target="confirmPassword">
-                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                </button>
-              </div>
+            <!-- Social Login -->
+            <div class="divider">
+              <span>OR</span>
             </div>
 
-            <button type="submit" class="primary-btn">
-              Register & Continue
-            </button>
+            <div class="social-login">
+              <button type="button" class="social-btn google-btn">
+                <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google">
+                Continue with Google
+              </button>
+              <button type="button" class="social-btn facebook-btn">
+                <img src="https://www.svgrepo.com/show/448224/facebook.svg" alt="Facebook">
+                Continue with Facebook
+              </button>
+            </div>
 
             <p class="switch-text">
               Already have access?
+              <a href="#" data-switch="login">Back to login</a>
+            </p>
+          </form>
+
+          <!-- Forgot Password Form -->
+          <form id="forgotPasswordForm" class="auth-form">
+            <h2 class="form-title">Reset Password</h2>
+            <p class="form-subtitle">We'll send an OTP to your email to verify your identity.</p>
+
+            <div class="input-group">
+              <label>Email Address</label>
+              <input type="email" id="resetEmail" placeholder="Enter registered email" />
+            </div>
+
+            <div id="resetOtpSection" class="hidden">
+              <div class="input-group">
+                <label>Verification Code</label>
+                <input type="text" id="resetOtp" placeholder="000000" maxlength="6" />
+              </div>
+
+              <div class="input-group">
+                <label>New Password</label>
+                <input type="password" id="resetNewPassword" placeholder="Enter new password" />
+              </div>
+            </div>
+
+            <button type="button" id="sendResetOtpBtn" class="primary-btn">Send OTP</button>
+            <button type="button" id="verifyAndResetBtn" class="primary-btn hidden">Verify & Reset Password</button>
+
+            <p class="switch-text">
               <a href="#" data-switch="login">Back to login</a>
             </p>
           </form>

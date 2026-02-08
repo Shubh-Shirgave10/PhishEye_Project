@@ -1,60 +1,75 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models.scan import Scan
 from app.services.scan_service import URLScanner
+from marshmallow import ValidationError
+from app.schemas import URLScanSchema
 
 scan_bp = Blueprint('scan', __name__)
 scanner = URLScanner()
+url_scan_schema = URLScanSchema()
 
 @scan_bp.route('/quick', methods=['POST'])
-# @jwt_required()  <-- Disabled for testing
+@jwt_required()
 def quick_scan():
-    # user_id = get_jwt_identity()
-    user_id = 1 # Mock user ID for bypass mode
+    user_id = get_jwt_identity()
+    
+    # Get JSON data
     data = request.get_json()
-    url = data.get('url')
+    if not data:
+        return jsonify({'success': False, 'message': 'Request body is required'}), 400
     
+    try:
+        validated_data = url_scan_schema.load(data)
+    except ValidationError as err:
+        return jsonify({
+            'success': False, 
+            'message': 'Invalid URL format', 
+            'errors': err.messages
+        }), 422
+    
+    url = validated_data.get('url', '').strip()
     if not url:
-        return jsonify({'message': 'URL is required'}), 400
+        return jsonify({'success': False, 'message': 'URL is required'}), 422
     
-    # helper handles DB saving internally now
-    scan_result = scanner.scan(url, user_id=user_id)
-    
-    # Wrap for frontend expectations in mainDash.js
-    response_data = {
-        'success': True,
-        'result': {
-            'status': scan_result['verdict'],
-            'confidenceScore': scan_result['risk_score'],
-            'threats': scan_result['threats'],
-            'url': scan_result['url'],
-            'cached': scan_result['cached']
-        }
-    }
-    
-    return jsonify(response_data), 200
+    try:
+        # Production scanner returns: {url, status, confidenceScore, explanation, threats, cached, details}
+        result = scanner.quick_scan(url, user_id=user_id)
+        return jsonify({
+            'success': True,
+            'result': result
+        }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @scan_bp.route('/deep', methods=['POST'])
 @jwt_required()
 def deep_scan():
     user_id = get_jwt_identity()
+    
+    # Get JSON data
     data = request.get_json()
-    url = data['url']
+    if not data:
+        return jsonify({'success': False, 'message': 'Request body is required'}), 400
     
-    result = scanner.deep_scan(url)
+    try:
+        validated_data = url_scan_schema.load(data)
+    except ValidationError as err:
+        return jsonify({
+            'success': False, 
+            'message': 'Invalid URL format', 
+            'errors': err.messages
+        }), 422
     
-    # Save to history
-    new_scan = Scan(
-        user_id=user_id,
-        url=url,
-        status=result['status'],
-        confidence_score=result['confidenceScore'],
-        scan_type='deep',
-        threats=result['threats'],
-        details=result['details']
-    )
-    db.session.add(new_scan)
-    db.session.commit()
+    url = validated_data.get('url', '').strip()
+    if not url:
+        return jsonify({'success': False, 'message': 'URL is required'}), 422
     
-    return jsonify(result), 200
+    try:
+        result = scanner.deep_scan(url, user_id=user_id)
+        return jsonify({
+            'success': True,
+            'result': result
+        }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500

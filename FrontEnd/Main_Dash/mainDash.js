@@ -71,7 +71,147 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load dashboard statistics and update chart
   await loadDashboardData();
+  
+  // Load current/latest scan result
+  await loadLatestScan();
+  
+  // Sync auth token to extension when dashboard loads
+  syncTokenToExtension();
+  
+  // Refresh data every 30 seconds to show new scans
+  setInterval(async () => {
+    await loadDashboardData();
+    await loadLatestScan();
+  }, 30000);
+  
+  // Refresh when page becomes visible (user switches back to tab)
+  document.addEventListener('visibilitychange', async () => {
+    if (!document.hidden) {
+      await loadDashboardData();
+      await loadLatestScan();
+      syncTokenToExtension();
+    }
+  });
+  
+  // Refresh on focus (user clicks on tab)
+  window.addEventListener('focus', async () => {
+    await loadDashboardData();
+    await loadLatestScan();
+    syncTokenToExtension();
+  });
 });
+
+// Load latest scan result
+async function loadLatestScan() {
+  try {
+    const response = await api.getLatestScan();
+    
+    if (response.success && response.scan) {
+      displayLatestScan(response.scan);
+    } else {
+      showNoScanMessage();
+    }
+  } catch (error) {
+    console.error('Error loading latest scan:', error);
+    showNoScanMessage();
+  }
+}
+
+// Display latest scan result
+function displayLatestScan(scan) {
+  const currentScanCard = document.getElementById('currentScanCard');
+  const noScanMessage = document.getElementById('noScanMessage');
+  
+  if (!currentScanCard || !noScanMessage) return;
+  
+  // Hide no scan message, show scan card
+  noScanMessage.style.display = 'none';
+  currentScanCard.style.display = 'block';
+  
+  // Update URL
+  const urlElement = document.getElementById('currentScanUrl');
+  if (urlElement) {
+    urlElement.textContent = truncateURL(scan.url, 60);
+    urlElement.title = scan.url;
+  }
+  
+  // Update status badge
+  const statusElement = document.getElementById('currentScanStatus');
+  if (statusElement) {
+    const status = scan.status.toLowerCase();
+    statusElement.textContent = status.toUpperCase();
+    statusElement.className = 'status-badge-large ' + status;
+  }
+  
+  // Update risk score
+  const riskElement = document.getElementById('currentScanRisk');
+  if (riskElement) {
+    const risk = scan.confidenceScore ? Math.round(scan.confidenceScore * 100) : 0;
+    riskElement.textContent = risk + '%';
+  }
+  
+  // Update confidence
+  const confidenceElement = document.getElementById('currentScanConfidence');
+  if (confidenceElement) {
+    const confidence = scan.confidenceScore ? Math.round(scan.confidenceScore * 100) : 0;
+    confidenceElement.textContent = confidence + '%';
+  }
+  
+  // Update time
+  const timeElement = document.getElementById('currentScanTime');
+  if (timeElement) {
+    const scanTime = new Date(scan.detectTime || scan.created_at);
+    timeElement.textContent = formatDate(scanTime);
+  }
+  
+  // Update explanation
+  const explanationElement = document.getElementById('currentScanExplanation');
+  if (explanationElement) {
+    const explanation = scan.details?.explanation || scan.explanation || 'No detailed explanation available.';
+    explanationElement.textContent = explanation;
+  }
+  
+  // Re-initialize icons
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+// Show no scan message
+function showNoScanMessage() {
+  const currentScanCard = document.getElementById('currentScanCard');
+  const noScanMessage = document.getElementById('noScanMessage');
+  
+  if (currentScanCard) currentScanCard.style.display = 'none';
+  if (noScanMessage) noScanMessage.style.display = 'block';
+}
+
+// Sync authentication token to extension
+function syncTokenToExtension() {
+  const token = api.getToken();
+  if (token) {
+    // Method 1: Send token to extension via postMessage (for content scripts)
+    window.postMessage({ type: 'PHISHEYE_AUTH_SYNC', token: token }, window.location.origin);
+    
+    // Method 2: Store in localStorage for content script to pick up
+    localStorage.setItem('phisheye_auth_sync_token', token);
+    localStorage.setItem('phisheye_auth_sync_time', Date.now().toString());
+    
+    // Method 3: Try direct message to extension (if we know the extension ID)
+    // This is a fallback - the content script method should work
+    console.log('[Dashboard] Token sync sent to extension via multiple methods');
+    
+    // Also try to send message to extension directly via chrome.runtime
+    // Note: This only works if the extension ID is known, but we'll try anyway
+    try {
+      if (window.chrome && chrome.runtime) {
+        // We can't directly message without extension ID, but content script will handle it
+      }
+    } catch (e) {
+      // Ignore - content script method will work
+    }
+  }
+}
 
 // Load user profile
 async function loadUserProfile() {
@@ -83,9 +223,9 @@ async function loadUserProfile() {
       const userEmail = document.querySelector('.panel-user-email');
       const userAvatar = document.querySelector('.user-avatar');
 
-      if (userName) userName.textContent = user.fullName || 'User';
+      if (userName) userName.textContent = user.full_name || user.fullName || 'User';
       if (userEmail) userEmail.textContent = user.email || '';
-      if (userAvatar) userAvatar.textContent = (user.fullName || 'U')[0].toUpperCase();
+      if (userAvatar) userAvatar.textContent = (user.full_name || user.fullName || 'U')[0].toUpperCase();
     }
   } catch (error) {
     console.error('Error loading user profile:', error);
@@ -114,21 +254,21 @@ async function loadDashboardData() {
         { label: 'Malware', value: stats.maliciousCount || 0 }
       ]);
     } else {
-      // Fallback to default data if API fails
-      console.warn('Using fallback data for dashboard');
+      // No data available - show empty state
+      console.warn('No dashboard data available');
       updateChart([
-        { label: 'Safe', value: 92 },
-        { label: 'Suspicious', value: 21 },
-        { label: 'Malware', value: 15 }
+        { label: 'Safe', value: 0 },
+        { label: 'Suspicious', value: 0 },
+        { label: 'Malware', value: 0 }
       ]);
     }
   } catch (error) {
     console.error('Error loading dashboard data:', error);
-    // Use fallback data
+    // Show empty state on error
     updateChart([
-      { label: 'Safe', value: 92 },
-      { label: 'Suspicious', value: 21 },
-      { label: 'Malware', value: 15 }
+      { label: 'Safe', value: 0 },
+      { label: 'Suspicious', value: 0 },
+      { label: 'Malware', value: 0 }
     ]);
   }
 }
